@@ -42,7 +42,7 @@ export default function WithdrawRequests() {
   const fetchWithdrawals = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/withdrawal-requests`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/withdrawal-requests`)
       
       if (response.data.success) {
         setWithdrawals(response.data.withdrawalRequests)
@@ -64,7 +64,7 @@ export default function WithdrawRequests() {
     try {
       setProcessingId(selectedWithdrawal.id)
       const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/withdrawal-requests/${selectedWithdrawal.id}/process`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/withdrawal-requests/${selectedWithdrawal.id}/process`,
         {
           status: processStatus,
           notes: processNotes
@@ -140,11 +140,11 @@ export default function WithdrawRequests() {
   }
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Withdraw Requests</h1>
-          <p className="mt-2 text-gray-600">Review and process user withdrawal requests</p>
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Withdraw Requests</h1>
+        <p className="mt-2 text-gray-600">Review and process user withdrawal requests</p>
         </div>
         <div className="text-center py-8">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
@@ -231,18 +231,18 @@ export default function WithdrawRequests() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
+            <Table>
+              <TableHeader>
+                <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead>Amount</TableHead>
+                  <TableHead>Amount</TableHead>
                 <TableHead>Wallet Address</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Request Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Request Date</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
               {filteredWithdrawals.map((withdrawal) => (
                 <TableRow key={withdrawal.id}>
                   <TableCell>
@@ -257,16 +257,16 @@ export default function WithdrawRequests() {
                     <div className="max-w-[200px] truncate" title={withdrawal.walletAddress}>
                       {withdrawal.walletAddress}
                     </div>
-                  </TableCell>
+                    </TableCell>
                   <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
                   <TableCell>{new Date(withdrawal.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl">
                           <DialogHeader>
@@ -314,8 +314,8 @@ export default function WithdrawRequests() {
                       {(withdrawal.status === 'pending' || withdrawal.status === 'processing') && (
                         <Dialog open={isProcessDialogOpen} onOpenChange={setIsProcessDialogOpen}>
                           <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => setSelectedWithdrawal(withdrawal)}
                             >
@@ -361,7 +361,7 @@ export default function WithdrawRequests() {
                               </div>
                             </div>
                             <DialogFooter>
-                              <Button
+                            <Button
                                 onClick={handleProcess}
                                 disabled={processingId === withdrawal.id}
                               >
@@ -373,23 +373,23 @@ export default function WithdrawRequests() {
                                 ) : (
                                   `Mark as ${processStatus === 'completed' ? 'Approved' : 'Rejected'}`
                                 )}
-                              </Button>
+                          </Button>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           
           {filteredWithdrawals.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No withdrawal requests found.</p>
-            </div>
+          </div>
           )}
         </CardContent>
       </Card>

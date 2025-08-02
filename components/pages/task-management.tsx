@@ -90,7 +90,7 @@ export default function TaskManagement() {
   const fetchTasks = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/tasks`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/tasks`)
       
       if (response.data.success) {
         setTasks(response.data.tasks)
@@ -106,7 +106,7 @@ export default function TaskManagement() {
   const fetchSubmissions = async () => {
     try {
       setSubmissionsLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/task-submissions`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/task-submissions`)
       
       if (response.data.success) {
         setSubmissions(response.data.submissions)
@@ -129,10 +129,10 @@ export default function TaskManagement() {
     try {
       setProcessingTask('creating')
       
-      if (editingTask) {
+    if (editingTask) {
         // Update existing task
         const response = await axios.put(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/tasks/${editingTask.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/tasks/${editingTask.id}`,
           { ...formData, reward: Number(formData.reward) }
         )
         
@@ -140,12 +140,12 @@ export default function TaskManagement() {
           setTasks(tasks.map(task => 
             task.id === editingTask.id ? response.data.task : task
           ))
-          setEditingTask(null)
+      setEditingTask(null)
         }
-      } else {
+    } else {
         // Create new task
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/tasks`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/tasks`,
           { ...formData, reward: Number(formData.reward) }
         )
         
@@ -206,7 +206,7 @@ export default function TaskManagement() {
       const newStatus = task.status === 'active' ? 'inactive' : 'active'
       
       const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/tasks/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/tasks/${id}`,
         { status: newStatus }
       )
       
@@ -228,7 +228,7 @@ export default function TaskManagement() {
       setProcessingSubmission(submissionId)
       
       const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/task-submissions/${submissionId}/review`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/task-submissions/${submissionId}/review`,
         { status, reviewNotes }
       )
       
@@ -323,10 +323,10 @@ export default function TaskManagement() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      value={formData.title}
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
                       onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                       required
                     />
@@ -339,8 +339,8 @@ export default function TaskManagement() {
                       step="0.01"
                       value={formData.reward}
                       onChange={(e) => setFormData(prev => ({ ...prev, reward: e.target.value }))}
-                      required
-                    />
+                    required
+                  />
                   </div>
                 </div>
                 <div className="grid gap-2">
@@ -356,16 +356,16 @@ export default function TaskManagement() {
                   <div className="grid gap-2">
                     <Label htmlFor="category">Category</Label>
                     <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
                         <SelectItem value="Social Media">Social Media</SelectItem>
                         <SelectItem value="App Store">App Store</SelectItem>
                         <SelectItem value="Survey">Survey</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    </SelectContent>
+                  </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="timeEstimate">Time Estimate</Label>
@@ -432,12 +432,12 @@ export default function TaskManagement() {
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-4">
-          <Card>
-            <CardHeader>
+      <Card>
+        <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>All Tasks</CardTitle>
-                  <CardDescription>Manage all user tasks and their status</CardDescription>
+          <CardTitle>All Tasks</CardTitle>
+          <CardDescription>Manage all user tasks and their status</CardDescription>
                 </div>
                 <Button
                   variant="outline"
@@ -452,56 +452,56 @@ export default function TaskManagement() {
                   )}
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent>
+        </CardHeader>
+        <CardContent>
               {loading ? (
                 <div className="text-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
                   <p className="text-gray-600">Loading tasks...</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead>Reward</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tasks.map((task) => (
-                      <TableRow key={task.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{task.title}</div>
-                            <div className="text-sm text-gray-500">{task.description}</div>
-                          </div>
-                        </TableCell>
+                <TableHead>Reward</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow key={task.id}>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{task.title}</div>
+                      <div className="text-sm text-gray-500">{task.description}</div>
+                    </div>
+                  </TableCell>
                         <TableCell>
                           <Badge className="bg-blue-100 text-blue-800">{task.category}</Badge>
                         </TableCell>
                         <TableCell>${task.reward}</TableCell>
-                        <TableCell>{getStatusBadge(task.status)}</TableCell>
+                  <TableCell>{getStatusBadge(task.status)}</TableCell>
                         <TableCell>{new Date(task.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => handleEdit(task)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => toggleStatus(task.id)}
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(task)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleStatus(task.id)}
                               disabled={processingTask === task.id}
-                              className={
+                        className={
                                 task.status === "inactive"
-                                  ? "text-green-600 hover:text-green-700"
-                                  : "text-red-600 hover:text-red-700"
-                              }
-                            >
+                            ? "text-green-600 hover:text-green-700"
+                            : "text-red-600 hover:text-red-700"
+                        }
+                      >
                               {processingTask === task.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : task.status === "inactive" ? (
@@ -509,21 +509,21 @@ export default function TaskManagement() {
                               ) : (
                                 <Lock className="h-4 w-4" />
                               )}
-                            </Button>
+                      </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent"
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent"
                                   disabled={processingTask === task.id}
-                                >
+                      >
                                   {processingTask === task.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                   ) : (
-                                    <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                                   )}
-                                </Button>
+                      </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
@@ -543,12 +543,12 @@ export default function TaskManagement() {
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
               )}
             </CardContent>
           </Card>
@@ -675,8 +675,8 @@ export default function TaskManagement() {
                   </TableBody>
                 </Table>
               )}
-            </CardContent>
-          </Card>
+        </CardContent>
+      </Card>
         </TabsContent>
       </Tabs>
     </div>

@@ -36,7 +36,7 @@ export default function DepositRequests() {
   const fetchDeposits = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/deposits`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/deposits`)
       if (response.data && response.data.deposits) {
         const sanitizedDeposits = response.data.deposits.map((deposit: any) => ({
           ...deposit,
@@ -63,7 +63,7 @@ export default function DepositRequests() {
   const handleApprove = async (id: string) => {
     try {
       setProcessingDeposits(prev => new Set(prev).add(id))
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/deposits/${id}/confirm`)
+              const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/deposits/${id}/confirm`)
       if (response.data.success) {
         setDeposits(deposits.map((deposit) => 
           deposit._id === id ? { ...deposit, status: "confirmed" } : deposit
@@ -87,7 +87,7 @@ export default function DepositRequests() {
   const handleReject = async (id: string) => {
     try {
       setProcessingDeposits(prev => new Set(prev).add(id))
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/deposits/${id}/reject`)
+              const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/deposits/${id}/reject`)
       if (response.data.success) {
         setDeposits(deposits.map((deposit) => 
           deposit._id === id ? { ...deposit, status: "rejected" } : deposit
