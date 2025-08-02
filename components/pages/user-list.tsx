@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Eye, Ban, CheckCircle, UserCheck, Gift } from "lucide-react"
 import axios from "axios"
+import { getApiUrl } from "@/lib/config"
 
 interface User {
   _id: string
@@ -33,7 +34,7 @@ export default function UserList() {
     const fetchUsers = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/users?page=${currentPage}&limit=50`)
+        const response = await axios.get(getApiUrl(`/api/admin/users?page=${currentPage}&limit=50`))
         if (response.data && response.data.users) {
           setUsers(response.data.users)
           setTotalPages(response.data.pagination?.totalPages || 1)
