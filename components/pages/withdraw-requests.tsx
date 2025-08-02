@@ -42,7 +42,7 @@ export default function WithdrawRequests() {
   const fetchWithdrawals = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/withdrawal-requests`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/withdrawal-requests`)
       
       if (response.data.success) {
         setWithdrawals(response.data.withdrawalRequests)
@@ -64,7 +64,7 @@ export default function WithdrawRequests() {
     try {
       setProcessingId(selectedWithdrawal.id)
       const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/withdrawal-requests/${selectedWithdrawal.id}/process`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/withdrawal-requests/${selectedWithdrawal.id}/process`,
         {
           status: processStatus,
           notes: processNotes

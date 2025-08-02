@@ -90,7 +90,7 @@ export default function TaskManagement() {
   const fetchTasks = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/tasks`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks`)
       
       if (response.data.success) {
         setTasks(response.data.tasks)
@@ -106,7 +106,7 @@ export default function TaskManagement() {
   const fetchSubmissions = async () => {
     try {
       setSubmissionsLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/task-submissions`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/task-submissions`)
       
       if (response.data.success) {
         setSubmissions(response.data.submissions)
@@ -132,7 +132,7 @@ export default function TaskManagement() {
     if (editingTask) {
         // Update existing task
         const response = await axios.put(
-          `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/tasks/${editingTask.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks/${editingTask.id}`,
           { ...formData, reward: Number(formData.reward) }
         )
         
@@ -145,7 +145,7 @@ export default function TaskManagement() {
     } else {
         // Create new task
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/tasks`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks`,
           { ...formData, reward: Number(formData.reward) }
         )
         
@@ -182,7 +182,7 @@ export default function TaskManagement() {
       setProcessingTask(id)
       
       const response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'}/api/admin/tasks/${id}`
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks/${id}`
       )
       
       if (response.data.success) {
@@ -206,7 +206,7 @@ export default function TaskManagement() {
       const newStatus = task.status === 'active' ? 'inactive' : 'active'
       
       const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/tasks/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks/${id}`,
         { status: newStatus }
       )
       
@@ -228,7 +228,7 @@ export default function TaskManagement() {
       setProcessingSubmission(submissionId)
       
       const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/task-submissions/${submissionId}/review`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/task-submissions/${submissionId}/review`,
         { status, reviewNotes }
       )
       

@@ -33,7 +33,7 @@ export default function UserList() {
     const fetchUsers = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/users?page=${currentPage}&limit=50`)
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/users?page=${currentPage}&limit=50`)
         if (response.data && response.data.users) {
           setUsers(response.data.users)
           setTotalPages(response.data.pagination?.totalPages || 1)

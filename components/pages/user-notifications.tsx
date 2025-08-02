@@ -47,8 +47,8 @@ export default function UserNotifications() {
       try {
         setLoading(true)
         const [notificationsRes, usersRes] = await Promise.all([
-                  axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/notifications`),
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/users?limit=100`)
+                  axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/notifications`),
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/users?limit=100`)
         ])
         
         if (notificationsRes.data.success) {
@@ -84,7 +84,7 @@ export default function UserNotifications() {
     try {
       setSending(true)
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://nexusbackend-production.up.railway.app'}/api/admin/notifications`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/notifications`,
         {
           title: formData.title,
           message: formData.message,
