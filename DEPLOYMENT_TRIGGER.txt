@@ -1,0 +1,4 @@
+Deployment trigger: 2025-01-02T20:50:33Z
+This file is created to force Railway to redeploy with the latest backend URL fixes.
+Latest commit: 5f1f0c5
+Expected backend URL: https://easyearn-backend-production-01ac.up.railway.app
