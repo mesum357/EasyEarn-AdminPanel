@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic"
 import AdminLayout from "@/components/admin-layout"
 
-const Dashboard = dynamic(() => import("@/components/pages/dashboard"), {
+const LuckyDrawControl = dynamic(() => import("@/components/pages/lucky-draw-control"), {
   ssr: false,
   loading: () => (
     <div className="flex h-screen items-center justify-center bg-gray-100">
@@ -12,10 +12,10 @@ const Dashboard = dynamic(() => import("@/components/pages/dashboard"), {
   ),
 })
 
-export default function Home() {
+export default function LuckyDrawPage() {
   return (
     <AdminLayout>
-      <Dashboard />
+      <LuckyDrawControl />
     </AdminLayout>
   )
-}
+} 
