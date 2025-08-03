@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Plus, Calendar, Play, Pause, Edit, Trash2, Eye, CheckCircle, XCircle } from "lucide-react"
+import { Plus, Calendar, Play, Pause, Edit, Trash2, Eye, CheckCircle, XCircle, RefreshCw } from "lucide-react"
 
 // Empty array - will be populated from backend
 const initialDraws = []
@@ -506,8 +506,21 @@ export default function LuckyDrawControl() {
       {/* Lucky Draws Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Lucky Draws</CardTitle>
-          <CardDescription>Manage all lucky draws and their status</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>All Lucky Draws</CardTitle>
+              <CardDescription>Manage all lucky draws and their status</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchLuckyDraws}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -598,8 +611,21 @@ export default function LuckyDrawControl() {
       {/* Lucky Draw Requests Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Lucky Draw Requests</CardTitle>
-          <CardDescription>Review and manage participation requests from users</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Lucky Draw Requests</CardTitle>
+              <CardDescription>Review and manage participation requests from users</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchParticipations}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -725,11 +751,24 @@ export default function LuckyDrawControl() {
               <div>
                 <Label className="text-sm font-medium">Receipt Image</Label>
                 <div className="mt-2">
-                  <img
-                    src={selectedParticipation.receiptUrl}
-                    alt="Receipt"
-                    className="max-w-full h-auto rounded-lg border"
-                  />
+                  {selectedParticipation.receiptUrl ? (
+                    <img
+                      src={selectedParticipation.receiptUrl}
+                      alt="Receipt"
+                      className="max-w-full h-auto rounded-lg border"
+                      onError={(e) => {
+                        console.error('Failed to load image:', selectedParticipation.receiptUrl);
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling.style.display = 'block';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="hidden p-4 text-center text-gray-500 border rounded-lg"
+                    style={{ display: selectedParticipation.receiptUrl ? 'none' : 'block' }}
+                  >
+                    <p>No receipt image available</p>
+                  </div>
                 </div>
               </div>
             </div>
