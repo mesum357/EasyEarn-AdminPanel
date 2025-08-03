@@ -42,10 +42,11 @@ export default function LuckyDrawControl() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('/api/admin/lucky-draws', {
+      const response = await fetch('https://easyearn-backend-production-01ac.up.railway.app/api/admin/lucky-draws', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
           ...formData,
@@ -82,7 +83,7 @@ export default function LuckyDrawControl() {
 
       const newStatus = currentDraw.status === "active" ? "paused" : "active"
       
-      const response = await fetch(`/api/admin/lucky-draws/${id}/status`, {
+      const response = await fetch(`https://easyearn-backend-production-01ac.up.railway.app/api/admin/lucky-draws/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +111,7 @@ export default function LuckyDrawControl() {
   // Fetch participations from backend
   const fetchParticipations = async () => {
     try {
-      const response = await fetch('/api/admin/participations')
+      const response = await fetch('https://easyearn-backend-production-01ac.up.railway.app/api/admin/participations')
       const data = await response.json()
       setParticipations(data.participations || [])
     } catch (error) {
@@ -121,7 +122,7 @@ export default function LuckyDrawControl() {
   // Handle participation approval
   const handleApproveParticipation = async (participationId: string) => {
     try {
-      const response = await fetch(`/api/admin/participations/${participationId}/approve`, {
+      const response = await fetch(`https://easyearn-backend-production-01ac.up.railway.app/api/admin/participations/${participationId}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,7 +139,7 @@ export default function LuckyDrawControl() {
   // Handle participation rejection
   const handleRejectParticipation = async (participationId: string) => {
     try {
-      const response = await fetch(`/api/admin/participations/${participationId}/reject`, {
+      const response = await fetch(`https://easyearn-backend-production-01ac.up.railway.app/api/admin/participations/${participationId}/reject`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ export default function LuckyDrawControl() {
   // Fetch lucky draws from backend
   const fetchLuckyDraws = async () => {
     try {
-      const response = await fetch('/api/admin/lucky-draws')
+      const response = await fetch('https://easyearn-backend-production-01ac.up.railway.app/api/admin/lucky-draws')
       if (response.ok) {
         const data = await response.json()
         setDraws(data.luckyDraws || [])
@@ -177,7 +178,7 @@ export default function LuckyDrawControl() {
   const handleDeleteDraw = async (drawId: string) => {
     if (confirm('Are you sure you want to delete this lucky draw?')) {
       try {
-        const response = await fetch(`/api/admin/lucky-draws/${drawId}`, {
+        const response = await fetch(`https://easyearn-backend-production-01ac.up.railway.app/api/admin/lucky-draws/${drawId}`, {
           method: 'DELETE',
         })
         
