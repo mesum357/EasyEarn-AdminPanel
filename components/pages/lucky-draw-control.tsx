@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Plus, Calendar, Play, Pause, Edit } from "lucide-react"
+import { Plus, Calendar, Play, Pause, Edit, Trash2, Eye, CheckCircle, XCircle } from "lucide-react"
 
 const mockDraws = [
   {
@@ -71,6 +71,9 @@ export default function LuckyDrawControl() {
     startDate: "",
     endDate: "",
   })
+  const [participations, setParticipations] = useState([])
+  const [selectedParticipation, setSelectedParticipation] = useState(null)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,6 +111,63 @@ export default function LuckyDrawControl() {
         return draw
       }),
     )
+  }
+
+  // Fetch participations from backend
+  const fetchParticipations = async () => {
+    try {
+      const response = await fetch('/api/admin/participations')
+      const data = await response.json()
+      setParticipations(data.participations || [])
+    } catch (error) {
+      console.error('Failed to fetch participations:', error)
+    }
+  }
+
+  // Handle participation approval
+  const handleApproveParticipation = async (participationId: string) => {
+    try {
+      const response = await fetch(`/api/admin/participations/${participationId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      if (response.ok) {
+        fetchParticipations() // Refresh the list
+      }
+    } catch (error) {
+      console.error('Failed to approve participation:', error)
+    }
+  }
+
+  // Handle participation rejection
+  const handleRejectParticipation = async (participationId: string) => {
+    try {
+      const response = await fetch(`/api/admin/participations/${participationId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      if (response.ok) {
+        fetchParticipations() // Refresh the list
+      }
+    } catch (error) {
+      console.error('Failed to reject participation:', error)
+    }
+  }
+
+  // Fetch participations on component mount
+  React.useEffect(() => {
+    fetchParticipations()
+  }, [])
+
+  // Handle delete draw
+  const handleDeleteDraw = (drawId: string) => {
+    if (confirm('Are you sure you want to delete this lucky draw?')) {
+      setDraws(draws.filter(draw => draw.id !== drawId))
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -331,6 +391,14 @@ export default function LuckyDrawControl() {
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteDraw(draw.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                       {draw.status !== "completed" && (
                         <Button
                           variant="outline"
@@ -353,6 +421,148 @@ export default function LuckyDrawControl() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Lucky Draw Requests Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lucky Draw Requests</CardTitle>
+          <CardDescription>Review and manage participation requests from users</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead>Prize</TableHead>
+                <TableHead>Binance UID</TableHead>
+                <TableHead>Receipt</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {participations.map((participation) => (
+                <TableRow key={participation._id}>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{participation.user?.username || 'Unknown'}</div>
+                      <div className="text-sm text-gray-500">{participation.user?.email || 'No email'}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{participation.prizeTitle}</div>
+                      <div className="text-sm text-gray-500">ID: {participation.prizeId}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">{participation.binanceUID}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedParticipation(participation)
+                        setIsViewDialogOpen(true)
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    {participation.submittedButton === null && (
+                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                        Pending
+                      </Badge>
+                    )}
+                    {participation.submittedButton === true && (
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        Approved
+                      </Badge>
+                    )}
+                    {participation.submittedButton === false && (
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                        Rejected
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {new Date(participation.createdAt).toLocaleDateString()}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      {participation.submittedButton === null && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleApproveParticipation(participation._id)}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRejectParticipation(participation._id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* View Participation Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Participation Details</DialogTitle>
+            <DialogDescription>Review the participation request details</DialogDescription>
+          </DialogHeader>
+          {selectedParticipation && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">User</Label>
+                  <p className="text-sm text-gray-600">{selectedParticipation.user?.username}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Email</Label>
+                  <p className="text-sm text-gray-600">{selectedParticipation.user?.email}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Prize</Label>
+                  <p className="text-sm text-gray-600">{selectedParticipation.prizeTitle}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Binance UID</Label>
+                  <p className="text-sm text-gray-600 font-mono">{selectedParticipation.binanceUID}</p>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Receipt Image</Label>
+                <div className="mt-2">
+                  <img
+                    src={selectedParticipation.receiptUrl}
+                    alt="Receipt"
+                    className="max-w-full h-auto rounded-lg border"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
