@@ -62,6 +62,7 @@ interface TaskSubmission {
   status: string
   screenshotUrl: string
   notes: string
+  url: string
   submittedAt: string
   reviewedAt: string
   reviewNotes: string
@@ -597,6 +598,7 @@ export default function TaskManagement() {
                       <TableHead>User</TableHead>
                       <TableHead>Task</TableHead>
                       <TableHead>Reward</TableHead>
+                      <TableHead>URL</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Submitted</TableHead>
                       <TableHead>Actions</TableHead>
@@ -615,6 +617,21 @@ export default function TaskManagement() {
                           <div className="font-medium">{submission.task?.title || 'Unknown Task'}</div>
                         </TableCell>
                         <TableCell>${submission.task?.reward || 0}</TableCell>
+                        <TableCell>
+                          {submission.url ? (
+                            <a 
+                              href={submission.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline text-sm truncate block max-w-[150px]"
+                              title={submission.url}
+                            >
+                              {submission.url.length > 30 ? `${submission.url.substring(0, 30)}...` : submission.url}
+                            </a>
+                          ) : (
+                            <span className="text-gray-500 text-sm">No URL</span>
+                          )}
+                        </TableCell>
                         <TableCell>{getSubmissionStatusBadge(submission.status)}</TableCell>
                         <TableCell>{new Date(submission.submittedAt).toLocaleDateString()}</TableCell>
                         <TableCell>
@@ -637,6 +654,19 @@ export default function TaskManagement() {
                                       className="max-w-full max-h-[70vh] object-contain rounded-lg border border-gray-200"
                                     />
                                   </div>
+                                  {submission.url && (
+                                    <div className="mt-4">
+                                      <h4 className="font-medium mb-2">Task URL:</h4>
+                                      <a 
+                                        href={submission.url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 underline break-all"
+                                      >
+                                        {submission.url}
+                                      </a>
+                                    </div>
+                                  )}
                                   {submission.notes && (
                                     <div className="mt-4">
                                       <h4 className="font-medium mb-2">User Notes:</h4>
