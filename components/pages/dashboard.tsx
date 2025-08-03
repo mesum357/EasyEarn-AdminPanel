@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CreditCard, Users, Gift, Wallet, TrendingUp, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { getApiUrl } from "@/lib/config"
 
@@ -49,6 +50,7 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -99,6 +101,7 @@ export default function Dashboard() {
       change: `${stats.users.monthlyGrowth >= 0 ? '+' : ''}${stats.users.monthlyGrowth}%`,
       changeType: stats.users.monthlyGrowth >= 0 ? "positive" : "negative",
     icon: Users,
+    redirectPath: "/users",
   },
   {
     name: "Pending Deposits",
@@ -106,6 +109,7 @@ export default function Dashboard() {
       change: `+${stats.recentActivity.deposits}`,
     changeType: "neutral",
     icon: CreditCard,
+    redirectPath: "/deposits",
   },
   {
       name: "Pending Participations",
@@ -113,6 +117,7 @@ export default function Dashboard() {
       change: `+${stats.recentActivity.participations}`,
     changeType: "positive",
     icon: Gift,
+    redirectPath: "/lucky-draw",
   },
   {
     name: "Pending Withdraws",
@@ -120,6 +125,7 @@ export default function Dashboard() {
       change: `+${stats.recentActivity.withdrawals}`,
     changeType: "positive",
     icon: Wallet,
+    redirectPath: "/withdraws",
   },
   ] : []
 
@@ -135,7 +141,11 @@ export default function Dashboard() {
         {dashboardStats.map((stat) => {
           const Icon = stat.icon
           return (
-            <Card key={stat.name}>
+            <Card 
+              key={stat.name} 
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+              onClick={() => navigate(stat.redirectPath)}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">{stat.name}</CardTitle>
                 <Icon className="h-4 w-4 text-gray-400" />
