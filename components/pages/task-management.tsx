@@ -42,6 +42,7 @@ interface Task {
   category: string
   timeEstimate: string
   requirements: string[]
+  url?: string
   status: string
   createdAt: string
   updatedAt: string
@@ -83,7 +84,8 @@ export default function TaskManagement() {
     reward: "",
     category: "Social Media",
     timeEstimate: "",
-    requirements: [] as string[]
+    requirements: [] as string[],
+    url: ""
   })
   const [newRequirement, setNewRequirement] = useState("")
 
@@ -163,7 +165,7 @@ export default function TaskManagement() {
         }
       }
       
-      setFormData({ title: "", description: "", reward: "", category: "Social Media", timeEstimate: "", requirements: [] })
+      setFormData({ title: "", description: "", reward: "", category: "Social Media", timeEstimate: "", requirements: [], url: "" })
       setIsAddDialogOpen(false)
     } catch (error) {
       console.error('Error saving task:', error)
@@ -181,7 +183,8 @@ export default function TaskManagement() {
       reward: task.reward.toString(),
       category: task.category,
       timeEstimate: task.timeEstimate,
-      requirements: task.requirements
+      requirements: task.requirements,
+      url: task.url || ""
     })
     setIsAddDialogOpen(true)
   }
@@ -311,12 +314,12 @@ export default function TaskManagement() {
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button
-              onClick={() => {
-                setEditingTask(null)
-                setFormData({ title: "", description: "", reward: "", category: "Social Media", timeEstimate: "", requirements: [] })
-              }}
-            >
+                          <Button
+                onClick={() => {
+                  setEditingTask(null)
+                  setFormData({ title: "", description: "", reward: "", category: "Social Media", timeEstimate: "", requirements: [], url: "" })
+                }}
+              >
               <Plus className="mr-2 h-4 w-4" />
               Add Task
             </Button>
@@ -359,6 +362,16 @@ export default function TaskManagement() {
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="url">Task URL (Optional)</Label>
+                  <Input
+                    id="url"
+                    type="url"
+                    placeholder="https://example.com/task"
+                    value={formData.url}
+                    onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
