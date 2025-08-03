@@ -36,7 +36,7 @@ export default function DepositRequests() {
   const fetchDeposits = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/deposits`)
+              const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/deposits`)
       if (response.data && response.data.deposits) {
         const sanitizedDeposits = response.data.deposits.map((deposit: any) => ({
           ...deposit,

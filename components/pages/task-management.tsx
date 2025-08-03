@@ -90,7 +90,7 @@ export default function TaskManagement() {
   const fetchTasks = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks`)
+              const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks`)
       
       if (response.data.success) {
         setTasks(response.data.tasks)
@@ -106,7 +106,7 @@ export default function TaskManagement() {
   const fetchSubmissions = async () => {
     try {
       setSubmissionsLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/task-submissions`)
+              const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/task-submissions`)
       
       if (response.data.success) {
         setSubmissions(response.data.submissions)
