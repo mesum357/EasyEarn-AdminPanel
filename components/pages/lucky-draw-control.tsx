@@ -38,6 +38,8 @@ export default function LuckyDrawControl() {
   const [participations, setParticipations] = useState([])
   const [selectedParticipation, setSelectedParticipation] = useState(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [editingDraw, setEditingDraw] = useState<any>(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -192,6 +194,59 @@ export default function LuckyDrawControl() {
     }
   }
 
+  const handleEditDraw = (draw: any) => {
+    setEditingDraw(draw)
+    setFormData({
+      title: draw.title,
+      description: draw.description,
+      prize: draw.prize,
+      entryFee: draw.entryFee.toString(),
+      maxParticipants: draw.maxParticipants.toString(),
+      startDate: new Date(draw.startDate).toISOString().split('T')[0],
+      endDate: new Date(draw.endDate).toISOString().split('T')[0],
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateDraw = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingDraw) return
+    
+    try {
+      const response = await fetch(`https://easyearn-backend-production-01ac.up.railway.app/api/admin/lucky-draws/${editingDraw._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          entryFee: Number(formData.entryFee),
+          maxParticipants: Number(formData.maxParticipants),
+        }),
+      })
+      
+      if (response.ok) {
+        const updatedDraw = await response.json()
+        setDraws(draws.map(draw => draw._id === editingDraw._id ? updatedDraw.luckyDraw : draw))
+        setEditingDraw(null)
+        setIsEditDialogOpen(false)
+        setFormData({
+          title: "",
+          description: "",
+          prize: "",
+          entryFee: "",
+          maxParticipants: "",
+          startDate: "",
+          endDate: "",
+        })
+      } else {
+        console.error('Failed to update lucky draw')
+      }
+    } catch (error) {
+      console.error('Error updating lucky draw:', error)
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
@@ -323,6 +378,98 @@ export default function LuckyDrawControl() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Lucky Draw Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Edit Lucky Draw</DialogTitle>
+              <DialogDescription>Update the lucky draw details</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateDraw}>
+              <div className="grid gap-4 py-4">
+                <div>
+                  <Label htmlFor="edit-title">Title</Label>
+                  <Input
+                    id="edit-title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-prize">Prize</Label>
+                  <Input
+                    id="edit-prize"
+                    value={formData.prize}
+                    onChange={(e) => setFormData({ ...formData, prize: e.target.value })}
+                    placeholder="e.g., $1000, Premium Membership"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-entryFee">Entry Fee (Points)</Label>
+                    <Input
+                      id="edit-entryFee"
+                      type="number"
+                      value={formData.entryFee}
+                      onChange={(e) => setFormData({ ...formData, entryFee: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-maxParticipants">Max Participants</Label>
+                    <Input
+                      id="edit-maxParticipants"
+                      type="number"
+                      value={formData.maxParticipants}
+                      onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-startDate">Start Date</Label>
+                    <Input
+                      id="edit-startDate"
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-endDate">End Date</Label>
+                    <Input
+                      id="edit-endDate"
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Update Lucky Draw</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats Cards */}
@@ -410,7 +557,11 @@ export default function LuckyDrawControl() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditDraw(draw)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
