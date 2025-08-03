@@ -106,13 +106,21 @@ export default function TaskManagement() {
   const fetchSubmissions = async () => {
     try {
       setSubmissionsLoading(true)
-              const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/task-submissions`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/task-submissions`)
+      
+      console.log('Submissions response:', response.data)
       
       if (response.data.success) {
         setSubmissions(response.data.submissions)
+        console.log('Submissions loaded:', response.data.submissions.length)
+      } else {
+        console.error('Failed to fetch submissions:', response.data.error)
+        setSubmissions([])
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching submissions:', error)
+      console.error('Error details:', error.response?.data || error.message)
+      setSubmissions([])
     } finally {
       setSubmissionsLoading(false)
     }
@@ -599,14 +607,14 @@ export default function TaskManagement() {
                       <TableRow key={submission.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{submission.user.username}</div>
-                            <div className="text-sm text-gray-500">{submission.user.email}</div>
+                            <div className="font-medium">{submission.user?.username || 'Unknown User'}</div>
+                            <div className="text-sm text-gray-500">{submission.user?.email || 'No email'}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium">{submission.task.title}</div>
+                          <div className="font-medium">{submission.task?.title || 'Unknown Task'}</div>
                         </TableCell>
-                        <TableCell>${submission.task.reward}</TableCell>
+                        <TableCell>${submission.task?.reward || 0}</TableCell>
                         <TableCell>{getSubmissionStatusBadge(submission.status)}</TableCell>
                         <TableCell>{new Date(submission.submittedAt).toLocaleDateString()}</TableCell>
                         <TableCell>
