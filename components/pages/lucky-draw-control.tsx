@@ -20,47 +20,11 @@ import {
 } from "@/components/ui/dialog"
 import { Plus, Calendar, Play, Pause, Edit, Trash2, Eye, CheckCircle, XCircle } from "lucide-react"
 
-const mockDraws = [
-  {
-    id: "DRAW001",
-    title: "Weekly Cash Prize",
-    description: "Win up to $1000 in cash prizes",
-    prize: "$1000",
-    entryFee: 50,
-    maxParticipants: 100,
-    currentParticipants: 67,
-    status: "active",
-    startDate: "2024-01-15",
-    endDate: "2024-01-22",
-  },
-  {
-    id: "DRAW002",
-    title: "Premium Membership",
-    description: "3 months premium membership",
-    prize: "Premium Membership",
-    entryFee: 25,
-    maxParticipants: 50,
-    currentParticipants: 23,
-    status: "scheduled",
-    startDate: "2024-01-20",
-    endDate: "2024-01-27",
-  },
-  {
-    id: "DRAW003",
-    title: "Holiday Special",
-    description: "Special holiday prizes",
-    prize: "$500 + Bonus",
-    entryFee: 30,
-    maxParticipants: 200,
-    currentParticipants: 200,
-    status: "completed",
-    startDate: "2024-01-01",
-    endDate: "2024-01-08",
-  },
-]
+// Empty array - will be populated from backend
+const initialDraws = []
 
 export default function LuckyDrawControl() {
-  const [draws, setDraws] = useState(mockDraws)
+  const [draws, setDraws] = useState(initialDraws)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
@@ -75,42 +39,72 @@ export default function LuckyDrawControl() {
   const [selectedParticipation, setSelectedParticipation] = useState(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newDraw = {
-      id: `DRAW${String(draws.length + 1).padStart(3, "0")}`,
-      ...formData,
-      entryFee: Number(formData.entryFee),
-      maxParticipants: Number(formData.maxParticipants),
-      currentParticipants: 0,
-      status: "scheduled",
+    try {
+      const response = await fetch('/api/admin/lucky-draws', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          entryFee: Number(formData.entryFee),
+          maxParticipants: Number(formData.maxParticipants),
+        }),
+      })
+      
+      if (response.ok) {
+        const newDraw = await response.json()
+        setDraws([...draws, newDraw])
+        setFormData({
+          title: "",
+          description: "",
+          prize: "",
+          entryFee: "",
+          maxParticipants: "",
+          startDate: "",
+          endDate: "",
+        })
+        setIsAddDialogOpen(false)
+      } else {
+        console.error('Failed to create lucky draw')
+      }
+    } catch (error) {
+      console.error('Error creating lucky draw:', error)
     }
-    setDraws([...draws, newDraw])
-    setFormData({
-      title: "",
-      description: "",
-      prize: "",
-      entryFee: "",
-      maxParticipants: "",
-      startDate: "",
-      endDate: "",
-    })
-    setIsAddDialogOpen(false)
   }
 
-  const toggleDrawStatus = (id: string) => {
-    setDraws(
-      draws.map((draw) => {
-        if (draw.id === id) {
-          if (draw.status === "active") {
-            return { ...draw, status: "paused" }
-          } else if (draw.status === "paused" || draw.status === "scheduled") {
-            return { ...draw, status: "active" }
-          }
-        }
-        return draw
-      }),
-    )
+  const toggleDrawStatus = async (id: string) => {
+    try {
+      const currentDraw = draws.find(draw => draw._id === id)
+      if (!currentDraw) return
+
+      const newStatus = currentDraw.status === "active" ? "paused" : "active"
+      
+      const response = await fetch(`/api/admin/lucky-draws/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      
+      if (response.ok) {
+        setDraws(
+          draws.map((draw) => {
+            if (draw._id === id) {
+              return { ...draw, status: newStatus }
+            }
+            return draw
+          }),
+        )
+      } else {
+        console.error('Failed to update draw status')
+      }
+    } catch (error) {
+      console.error('Error updating draw status:', error)
+    }
   }
 
   // Fetch participations from backend
@@ -158,15 +152,43 @@ export default function LuckyDrawControl() {
     }
   }
 
+  // Fetch lucky draws from backend
+  const fetchLuckyDraws = async () => {
+    try {
+      const response = await fetch('/api/admin/lucky-draws')
+      if (response.ok) {
+        const data = await response.json()
+        setDraws(data.luckyDraws || [])
+      } else {
+        console.error('Failed to fetch lucky draws')
+      }
+    } catch (error) {
+      console.error('Error fetching lucky draws:', error)
+    }
+  }
+
   // Fetch participations on component mount
   useEffect(() => {
     fetchParticipations()
+    fetchLuckyDraws()
   }, [])
 
   // Handle delete draw
-  const handleDeleteDraw = (drawId: string) => {
+  const handleDeleteDraw = async (drawId: string) => {
     if (confirm('Are you sure you want to delete this lucky draw?')) {
-      setDraws(draws.filter(draw => draw.id !== drawId))
+      try {
+        const response = await fetch(`/api/admin/lucky-draws/${drawId}`, {
+          method: 'DELETE',
+        })
+        
+        if (response.ok) {
+          setDraws(draws.filter(draw => draw._id !== drawId))
+        } else {
+          console.error('Failed to delete lucky draw')
+        }
+      } catch (error) {
+        console.error('Error deleting lucky draw:', error)
+      }
     }
   }
 
@@ -356,8 +378,8 @@ export default function LuckyDrawControl() {
             </TableHeader>
             <TableBody>
               {draws.map((draw) => (
-                <TableRow key={draw.id}>
-                  <TableCell className="font-medium">{draw.id}</TableCell>
+                <TableRow key={draw._id}>
+                  <TableCell className="font-medium">{draw._id}</TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{draw.title}</div>
@@ -394,7 +416,7 @@ export default function LuckyDrawControl() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => handleDeleteDraw(draw.id)}
+                        onClick={() => handleDeleteDraw(draw._id)}
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -403,7 +425,7 @@ export default function LuckyDrawControl() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => toggleDrawStatus(draw.id)}
+                          onClick={() => toggleDrawStatus(draw._id)}
                           className={
                             draw.status === "active"
                               ? "text-yellow-600 hover:text-yellow-700"
