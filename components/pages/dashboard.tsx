@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CreditCard, Users, Gift, Wallet, TrendingUp, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useRouter } from "next/navigation"
 import axios from "axios"
 import { getApiUrl } from "@/lib/config"
 
@@ -50,7 +50,7 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -144,7 +144,7 @@ export default function Dashboard() {
             <Card 
               key={stat.name} 
               className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-              onClick={() => navigate(stat.redirectPath)}
+              onClick={() => router.push(stat.redirectPath)}
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">{stat.name}</CardTitle>
