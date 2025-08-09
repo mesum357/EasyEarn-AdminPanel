@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Check, X, Eye, Loader2, AlertTriangle, CheckCircle } from "lucide-react"
+import { Check, X, Eye, Loader2, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import axios from "axios"
 
 interface Deposit {
@@ -27,38 +27,52 @@ interface Deposit {
   }
 }
 
+interface Pagination {
+  currentPage: number
+  totalPages: number
+  totalDeposits: number
+  limit: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
+
 export default function DepositRequests() {
   const [deposits, setDeposits] = useState<Deposit[]>([])
+  const [pagination, setPagination] = useState<Pagination | null>(null)
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
   const [processingDeposits, setProcessingDeposits] = useState<Set<string>>(new Set())
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null)
 
-  const fetchDeposits = async () => {
+  const fetchDeposits = async (page = 1) => {
     try {
       setLoading(true)
-              const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/deposits`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/deposits?page=${page}&limit=10`)
       if (response.data && response.data.deposits) {
         const sanitizedDeposits = response.data.deposits.map((deposit: any) => ({
           ...deposit,
           user: deposit.user || null,
           userId: deposit.userId || ''
         }))
-        console.log('Deposit data with receipt URLs:', sanitizedDeposits.map(d => ({ id: d._id, receiptUrl: d.receiptUrl })))
         setDeposits(sanitizedDeposits)
+        setPagination(response.data.pagination)
+        setCurrentPage(page)
       } else {
         setDeposits([])
+        setPagination(null)
       }
     } catch (error) {
       console.error('Failed to fetch deposits:', error)
       setDeposits([])
+      setPagination(null)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchDeposits()
-  }, [])
+    fetchDeposits(currentPage)
+  }, [currentPage])
 
   const handleApprove = async (id: string) => {
     try {
@@ -198,7 +212,7 @@ export default function DepositRequests() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Deposits</p>
-                <p className="text-2xl font-bold">{deposits.length}</p>
+                <p className="text-2xl font-bold">{pagination ? pagination.totalDeposits : 0}</p>
               </div>
               <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
                 <span className="text-blue-600 font-semibold">$</span>
@@ -459,6 +473,26 @@ export default function DepositRequests() {
                 )}
               </TableBody>
             </Table>
+          </div>
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={!pagination?.hasPrevPage}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Previous</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={!pagination?.hasNextPage}
+            >
+              <span>Next</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>

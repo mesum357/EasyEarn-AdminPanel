@@ -20,6 +20,8 @@ interface User {
   balance?: number
   createdAt: string
   referralCode?: string
+  hasDeposited?: boolean
+  tasksUnlocked?: boolean
 }
 
 export default function UserList() {
@@ -49,26 +51,49 @@ export default function UserList() {
     fetchUsers()
   }, [currentPage])
 
-  const handleStatusChange = (userId: string, newStatus: string) => {
-    // This would need to be implemented with a backend API call
-    console.log('Status change:', userId, newStatus)
-  }
+  const handleStatusChange = async (userId: string, newStatus: 'activate' | 'suspend') => {
+    try {
+      if (newStatus === 'activate') {
+        await axios.put(getApiUrl(`/api/admin/users/${userId}/activate`));
+        // Update the user in the local state
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            user._id === userId ? { ...user, hasDeposited: true, tasksUnlocked: true } : user
+          )
+        );
+        console.log(`User ${userId} activated successfully.`);
+      } else if (newStatus === 'suspend') {
+        await axios.put(getApiUrl(`/api/admin/users/${userId}/deactivate`));
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            user._id === userId ? { ...user, hasDeposited: false, tasksUnlocked: false } : user
+          )
+        );
+        console.log(`User ${userId} deactivated successfully.`);
+      }
+    } catch (error) {
+      console.error(`Failed to change status for user ${userId}:`, error);
+    }
+  };
 
-  const getStatusBadge = (verified: boolean) => {
-    if (verified) {
+  const isUserActive = (u: User) => Boolean(u.hasDeposited || u.tasksUnlocked)
+
+  const getActivationStatusBadge = (user: User) => {
+    const isActive = isUserActive(user)
+    if (isActive) {
       return (
         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-          Verified
+          Active
         </Badge>
-      )
+      );
     } else {
       return (
-        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-          Pending
+        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          Inactive
         </Badge>
-      )
+      );
     }
-  }
+  };
 
   const getAccountTypeBadge = (balance: number = 0) => {
     if (balance > 100) {
@@ -76,24 +101,25 @@ export default function UserList() {
         <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
           Premium
         </Badge>
-      )
+      );
     } else {
       return (
         <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
           Basic
         </Badge>
-      )
+      );
     }
-  }
+  };
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.username.toLowerCase().includes(searchTerm.toLowerCase())
+                         user.username.toLowerCase().includes(searchTerm.toLowerCase());
+    const isActive = isUserActive(user)
     const matchesStatus = statusFilter === "all" || 
-                         (statusFilter === "verified" && user.verified) ||
-                         (statusFilter === "pending" && !user.verified)
-    return matchesSearch && matchesStatus
-  })
+                         (statusFilter === "active" && isActive) ||
+                         (statusFilter === "inactive" && !isActive);
+    return matchesSearch && matchesStatus;
+  });
 
   if (loading) {
     return (
@@ -122,7 +148,7 @@ export default function UserList() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -157,8 +183,8 @@ export default function UserList() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="verified">Verified</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -191,7 +217,7 @@ export default function UserList() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(user.verified)}</TableCell>
+                    <TableCell>{getActivationStatusBadge(user)}</TableCell>
                     <TableCell>{getAccountTypeBadge(user.balance)}</TableCell>
                     <TableCell>${user.balance?.toFixed(2) || '0.00'}</TableCell>
                     <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
@@ -200,15 +226,13 @@ export default function UserList() {
                         <Button variant="outline" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {user.verified ? (
-                          <Button variant="outline" size="sm" onClick={() => handleStatusChange(user._id, "suspend")}>
-                            <Ban className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" onClick={() => handleStatusChange(user._id, "verify")}>
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button
+                          variant={isUserActive(user) ? "default" : "secondary"}
+                          size="sm"
+                          onClick={() => handleStatusChange(user._id, isUserActive(user) ? "suspend" : "activate")}
+                        >
+                          {isUserActive(user) ? 'Active' : 'Inactive'}
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -236,8 +260,7 @@ export default function UserList() {
                   Page {currentPage} of {totalPages}
                 </span>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant="outline" size="sm"
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                 >
@@ -249,5 +272,5 @@ export default function UserList() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
