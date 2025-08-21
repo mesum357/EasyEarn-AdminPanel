@@ -633,7 +633,7 @@ export default function LuckyDrawControl() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Prize</TableHead>
-                <TableHead>Binance UID</TableHead>
+                <TableHead>Wallet/UID</TableHead>
                 <TableHead>Receipt</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
@@ -651,11 +651,11 @@ export default function LuckyDrawControl() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{participation.prizeTitle}</div>
-                      <div className="text-sm text-gray-500">ID: {participation.prizeId}</div>
+                      <div className="font-medium">{participation.prizeTitle || participation.luckyDrawId?.title || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">ID: {participation.prizeId || participation.luckyDrawId?._id || 'N/A'}</div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-sm">{participation.binanceUID}</TableCell>
+                  <TableCell className="font-mono text-sm">{participation.walletAddress || participation.binanceUID || 'N/A'}</TableCell>
                   <TableCell>
                     <Button
                       variant="outline"
@@ -741,11 +741,11 @@ export default function LuckyDrawControl() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Prize</Label>
-                  <p className="text-sm text-gray-600">{selectedParticipation.prizeTitle}</p>
+                  <p className="text-sm text-gray-600">{selectedParticipation.prizeTitle || selectedParticipation.luckyDrawId?.title}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Binance UID</Label>
-                  <p className="text-sm text-gray-600 font-mono">{selectedParticipation.binanceUID}</p>
+                  <Label className="text-sm font-medium">Wallet Address / Binance UID</Label>
+                  <p className="text-sm text-gray-600 font-mono">{selectedParticipation.walletAddress || selectedParticipation.binanceUID || 'N/A'}</p>
                 </div>
               </div>
               <div>
