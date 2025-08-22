@@ -3,7 +3,7 @@ import { getApiUrl } from './config';
 
 // Create axios instance with proper configuration
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app',
+  baseURL: getApiUrl(''), // Use the config function
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
