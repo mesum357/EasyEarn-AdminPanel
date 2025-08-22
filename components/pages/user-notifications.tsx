@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Send, Bell, Loader2 } from "lucide-react"
-import axios from "axios"
+import apiClient from "@/lib/axios"
 
 interface Notification {
   _id: string
@@ -47,8 +47,8 @@ export default function UserNotifications() {
       try {
         setLoading(true)
         const [notificationsRes, usersRes] = await Promise.all([
-                      axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/notifications`),
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/users?limit=100`)
+          apiClient.get('/api/admin/notifications'),
+          apiClient.get('/api/admin/users?limit=100')
         ])
         
         if (notificationsRes.data.success) {
@@ -83,16 +83,13 @@ export default function UserNotifications() {
 
     try {
       setSending(true)
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/notifications`,
-        {
-          title: formData.title,
-          message: formData.message,
-          type: formData.type,
-          recipientType: formData.recipientType,
-          recipientId: formData.recipientType === 'custom' ? formData.recipientId : undefined
-        }
-      )
+      const response = await apiClient.post('/api/admin/notifications', {
+        title: formData.title,
+        message: formData.message,
+        type: formData.type,
+        recipientType: formData.recipientType,
+        recipientId: formData.recipientType === 'custom' ? formData.recipientId : undefined
+      })
 
       if (response.data.success) {
         // Add the new notification to the list

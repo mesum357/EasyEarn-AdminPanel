@@ -1,4 +1,10 @@
-Deployment trigger: 2025-01-02T20:50:33Z
-This file is created to force Railway to redeploy with the latest backend URL fixes.
-Latest commit: 5f1f0c5
-Expected backend URL: https://easyearn-backend-production-01ac.up.railway.app
+CORS_FIX_DEPLOYMENT_2024_01_15
+
+Changes made:
+- Created centralized axios client with proper CORS configuration
+- Updated all components to use the new axios client
+- Added CORS test page for debugging
+- Added request/response interceptors for logging
+- Enhanced error handling for API calls
+
+This deployment should resolve the CORS issues and improve API communication.

@@ -35,6 +35,7 @@ const navigation = [
   { name: "Lucky Draw Control", href: "/lucky-draw", icon: Gift },
   { name: "Withdraw Requests", href: "/withdraws", icon: Wallet },
   { name: "User List", href: "/users", icon: Users },
+  { name: "Test CORS", href: "/test-cors", icon: Settings },
 ]
 
 function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (open: boolean) => void }) {

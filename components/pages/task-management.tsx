@@ -32,7 +32,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Plus, Edit, Trash2, Lock, Unlock, Eye, Check, X, Loader2 } from "lucide-react"
-import axios from "axios"
+import apiClient from "@/lib/axios"
 
 interface Task {
   id: string
@@ -93,7 +93,7 @@ export default function TaskManagement() {
   const fetchTasks = async () => {
     try {
       setLoading(true)
-              const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks`)
+              const response = await apiClient.get('/api/admin/tasks')
       
       if (response.data.success) {
         setTasks(response.data.tasks)
@@ -109,7 +109,7 @@ export default function TaskManagement() {
   const fetchSubmissions = async () => {
     try {
       setSubmissionsLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/task-submissions`)
+      const response = await apiClient.get('/api/admin/task-submissions')
       
       console.log('Submissions response:', response.data)
       
@@ -142,8 +142,8 @@ export default function TaskManagement() {
       
     if (editingTask) {
         // Update existing task
-        const response = await axios.put(
-          `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks/${editingTask.id}`,
+        const response = await apiClient.put(
+          `/api/admin/tasks/${editingTask.id}`,
           { ...formData, reward: Number(formData.reward) }
         )
         
@@ -155,8 +155,8 @@ export default function TaskManagement() {
         }
     } else {
         // Create new task
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks`,
+        const response = await apiClient.post(
+          '/api/admin/tasks',
           { ...formData, reward: Number(formData.reward) }
         )
         
@@ -193,8 +193,8 @@ export default function TaskManagement() {
     try {
       setProcessingTask(id)
       
-      const response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks/${id}`
+      const response = await apiClient.delete(
+        `/api/admin/tasks/${id}`
       )
       
       if (response.data.success) {
@@ -217,8 +217,8 @@ export default function TaskManagement() {
       
       const newStatus = task.status === 'active' ? 'inactive' : 'active'
       
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/tasks/${id}`,
+      const response = await apiClient.put(
+        `/api/admin/tasks/${id}`,
         { status: newStatus }
       )
       
@@ -239,8 +239,8 @@ export default function TaskManagement() {
     try {
       setProcessingSubmission(submissionId)
       
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/task-submissions/${submissionId}/review`,
+      const response = await apiClient.put(
+        `/api/admin/task-submissions/${submissionId}/review`,
         { status, reviewNotes }
       )
       

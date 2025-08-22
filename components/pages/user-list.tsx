@@ -9,8 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Eye, Ban, CheckCircle, UserCheck, Gift } from "lucide-react"
-import axios from "axios"
-import { getApiUrl } from "@/lib/config"
+import apiClient from "@/lib/axios"
 
 interface User {
   _id: string
@@ -36,7 +35,7 @@ export default function UserList() {
     const fetchUsers = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(getApiUrl(`/api/admin/users?page=${currentPage}&limit=50`))
+        const response = await apiClient.get(`/api/admin/users?page=${currentPage}&limit=50`)
         if (response.data && response.data.users) {
           setUsers(response.data.users)
           setTotalPages(response.data.pagination?.totalPages || 1)
@@ -54,7 +53,7 @@ export default function UserList() {
   const handleStatusChange = async (userId: string, newStatus: 'activate' | 'suspend') => {
     try {
       if (newStatus === 'activate') {
-        await axios.put(getApiUrl(`/api/admin/users/${userId}/activate`));
+        await apiClient.put(`/api/admin/users/${userId}/activate`);
         // Update the user in the local state
         setUsers(prevUsers =>
           prevUsers.map(user =>
@@ -63,7 +62,7 @@ export default function UserList() {
         );
         console.log(`User ${userId} activated successfully.`);
       } else if (newStatus === 'suspend') {
-        await axios.put(getApiUrl(`/api/admin/users/${userId}/deactivate`));
+        await apiClient.put(`/api/admin/users/${userId}/deactivate`);
         setUsers(prevUsers =>
           prevUsers.map(user =>
             user._id === userId ? { ...user, hasDeposited: false, tasksUnlocked: false } : user

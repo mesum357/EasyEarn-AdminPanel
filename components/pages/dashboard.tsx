@@ -2,8 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CreditCard, Users, Gift, Wallet, TrendingUp, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import axios from "axios"
-import { getApiUrl } from "@/lib/config"
+import apiClient from "@/lib/axios"
 
 interface DashboardStats {
   users: {
@@ -57,7 +56,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get(getApiUrl('/api/admin/dashboard-stats'))
+        const response = await apiClient.get('/api/admin/dashboard-stats')
         if (response.data.success) {
           setStats(response.data.stats)
         }

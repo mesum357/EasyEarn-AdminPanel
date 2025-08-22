@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Check, X, Eye, Loader2, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react"
-import axios from "axios"
+import apiClient from "@/lib/axios"
 
 interface Deposit {
   _id: string
@@ -47,7 +47,7 @@ export default function DepositRequests() {
   const fetchDeposits = async (page = 1) => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/deposits?page=${page}&limit=10`)
+      const response = await apiClient.get(`/api/admin/deposits?page=${page}&limit=10`)
       if (response.data && response.data.deposits) {
         const sanitizedDeposits = response.data.deposits.map((deposit: any) => ({
           ...deposit,
@@ -77,7 +77,7 @@ export default function DepositRequests() {
   const handleApprove = async (id: string) => {
     try {
       setProcessingDeposits(prev => new Set(prev).add(id))
-              const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/deposits/${id}/confirm`)
+              const response = await apiClient.put(`/api/admin/deposits/${id}/confirm`)
       if (response.data.success) {
         setDeposits(deposits.map((deposit) => 
           deposit._id === id ? { ...deposit, status: "confirmed" } : deposit
@@ -101,7 +101,7 @@ export default function DepositRequests() {
   const handleReject = async (id: string) => {
     try {
       setProcessingDeposits(prev => new Set(prev).add(id))
-              const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/deposits/${id}/reject`)
+              const response = await apiClient.put(`/api/admin/deposits/${id}/reject`)
       if (response.data.success) {
         setDeposits(deposits.map((deposit) => 
           deposit._id === id ? { ...deposit, status: "rejected" } : deposit

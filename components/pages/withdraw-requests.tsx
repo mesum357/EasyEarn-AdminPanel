@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Check, X, Eye, AlertTriangle, Loader2, RefreshCw } from "lucide-react"
-import axios from "axios"
+import apiClient from "@/lib/axios"
 
 interface WithdrawalRequest {
   id: string
@@ -42,7 +42,7 @@ export default function WithdrawRequests() {
   const fetchWithdrawals = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/withdrawal-requests`)
+      const response = await apiClient.get('/api/admin/withdrawal-requests')
       
       if (response.data.success) {
         setWithdrawals(response.data.withdrawalRequests)
@@ -63,8 +63,8 @@ export default function WithdrawRequests() {
 
     try {
       setProcessingId(selectedWithdrawal.id)
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://easyearn-backend-production-01ac.up.railway.app'}/api/admin/withdrawal-requests/${selectedWithdrawal.id}/process`,
+      const response = await apiClient.put(
+        `/api/admin/withdrawal-requests/${selectedWithdrawal.id}/process`,
         {
           status: processStatus,
           notes: processNotes
