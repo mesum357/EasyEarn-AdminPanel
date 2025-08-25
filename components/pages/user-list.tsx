@@ -8,8 +8,18 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Eye, Ban, CheckCircle, UserCheck, Gift } from "lucide-react"
+import { Search, Eye, Ban, CheckCircle, UserCheck, Gift, Edit, Save, X } from "lucide-react"
 import apiClient from "@/lib/axios"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast"
 
 interface User {
   _id: string
@@ -30,6 +40,11 @@ export default function UserList() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [newBalance, setNewBalance] = useState("")
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isUpdatingBalance, setIsUpdatingBalance] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -73,6 +88,66 @@ export default function UserList() {
     } catch (error) {
       console.error(`Failed to change status for user ${userId}:`, error);
     }
+  };
+
+  const handleEditBalance = (user: User) => {
+    setEditingUser(user);
+    setNewBalance(user.balance?.toString() || "0");
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateBalance = async () => {
+    if (!editingUser) return;
+
+    const balanceValue = parseFloat(newBalance);
+    if (isNaN(balanceValue) || balanceValue < 0) {
+      toast({
+        title: "Invalid Balance",
+        description: "Please enter a valid positive number for the balance.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUpdatingBalance(true);
+      const response = await apiClient.put(`/api/admin/users/${editingUser._id}/balance`, {
+        balance: balanceValue
+      });
+
+      if (response.data.success) {
+        // Update the user in the local state
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            user._id === editingUser._id ? { ...user, balance: balanceValue } : user
+          )
+        );
+
+        toast({
+          title: "Balance Updated",
+          description: `Successfully updated ${editingUser.username}'s balance to $${balanceValue.toFixed(2)}`,
+        });
+
+        setIsEditDialogOpen(false);
+        setEditingUser(null);
+        setNewBalance("");
+      }
+    } catch (error: any) {
+      console.error('Failed to update balance:', error);
+      toast({
+        title: "Update Failed",
+        description: error.response?.data?.error || "Failed to update user balance",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingBalance(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditDialogOpen(false);
+    setEditingUser(null);
+    setNewBalance("");
   };
 
   const isUserActive = (u: User) => Boolean(u.hasDeposited || u.tasksUnlocked)
@@ -218,7 +293,19 @@ export default function UserList() {
                     </TableCell>
                     <TableCell>{getActivationStatusBadge(user)}</TableCell>
                     <TableCell>{getAccountTypeBadge(user.balance)}</TableCell>
-                    <TableCell>${user.balance?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <span>${user.balance?.toFixed(2) || '0.00'}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditBalance(user)}
+                          className="h-6 w-6 p-0 hover:bg-gray-100"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
                     <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
@@ -270,6 +357,42 @@ export default function UserList() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Balance Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User Balance</DialogTitle>
+            <DialogDescription>
+              Update the balance for {editingUser?.username}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="balance">New Balance ($)</Label>
+              <Input
+                id="balance"
+                type="number"
+                step="0.01"
+                min="0"
+                value={newBalance}
+                onChange={(e) => setNewBalance(e.target.value)}
+                placeholder="Enter new balance"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelEdit} disabled={isUpdatingBalance}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateBalance} disabled={isUpdatingBalance}>
+              <Save className="h-4 w-4 mr-2" />
+              {isUpdatingBalance ? "Updating..." : "Update Balance"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
