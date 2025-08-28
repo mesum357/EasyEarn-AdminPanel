@@ -92,7 +92,7 @@ export default function UserList() {
 
   const handleEditBalance = (user: User) => {
     setEditingUser(user);
-    setNewBalance(user.balance?.toString() || "0");
+    setNewBalance(user.balance?.toString() || "0"); // Start with current balance for editing
     setIsEditDialogOpen(true);
   };
 
@@ -100,10 +100,10 @@ export default function UserList() {
     if (!editingUser) return;
 
     const balanceValue = parseFloat(newBalance);
-    if (isNaN(balanceValue) || balanceValue < 0) {
+    if (isNaN(balanceValue)) {
       toast({
         title: "Invalid Balance",
-        description: "Please enter a valid positive number for the balance.",
+        description: "Please enter a valid number for the balance.",
         variant: "destructive",
       });
       return;
@@ -112,20 +112,22 @@ export default function UserList() {
     try {
       setIsUpdatingBalance(true);
       const response = await apiClient.put(`/api/admin/users/${editingUser._id}/balance`, {
-        balance: balanceValue
+        balance: balanceValue,
+        operation: 'set' // Set the balance to the specified value
       });
 
       if (response.data.success) {
-        // Update the user in the local state
+        // Update the user in the local state with the new total balance
+        const newTotalBalance = response.data.user.balance;
         setUsers(prevUsers =>
           prevUsers.map(user =>
-            user._id === editingUser._id ? { ...user, balance: balanceValue } : user
+            user._id === editingUser._id ? { ...user, balance: newTotalBalance } : user
           )
         );
 
         toast({
           title: "Balance Updated",
-          description: `Successfully updated ${editingUser.username}'s balance to $${balanceValue.toFixed(2)}`,
+          description: `Successfully updated ${editingUser.username}'s balance to $${newTotalBalance.toFixed(2)}`,
         });
 
         setIsEditDialogOpen(false);
@@ -364,12 +366,12 @@ export default function UserList() {
           <DialogHeader>
             <DialogTitle>Edit User Balance</DialogTitle>
             <DialogDescription>
-              Update the balance for {editingUser?.username}
+              Set the balance for {editingUser?.username}. Current balance: ${editingUser?.balance?.toFixed(2) || '0.00'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="balance">New Balance ($)</Label>
+                              <Label htmlFor="balance">New Balance ($)</Label>
               <Input
                 id="balance"
                 type="number"
@@ -377,7 +379,7 @@ export default function UserList() {
                 min="0"
                 value={newBalance}
                 onChange={(e) => setNewBalance(e.target.value)}
-                placeholder="Enter new balance"
+                                  placeholder="Enter new balance amount"
               />
             </div>
           </div>
