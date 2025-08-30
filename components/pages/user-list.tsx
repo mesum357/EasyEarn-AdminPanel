@@ -201,13 +201,23 @@ export default function UserList() {
         
         setUsers(prevUsers =>
           prevUsers.map(user =>
-            user._id === editingUser._id ? { ...user, additionalBalance: updatedAdditionalBalance } : user
+            user._id === editingUser._id ? { 
+              ...user, 
+              additionalBalance: updatedAdditionalBalance
+            } : user
           )
         );
 
+        // Refresh the users list to ensure we have the latest data
+        const refreshResponse = await apiClient.get(`/api/admin/users?page=${currentPage}&limit=50`);
+        if (refreshResponse.data && refreshResponse.data.users) {
+          setUsers(refreshResponse.data.users);
+          console.log('🔄 Refreshed users list after additional balance update');
+        }
+
         toast({
-          title: "Additional Balance Updated",
-          description: `Successfully updated ${editingUser.username}'s additional balance to $${updatedAdditionalBalance.toFixed(2)}. Total balance: $${totalBalance.toFixed(2)}`,
+          title: "✅ Additional Balance Updated Successfully",
+          description: `${editingUser.username}'s additional balance: $${updatedAdditionalBalance.toFixed(2)} | New total balance: $${totalBalance.toFixed(2)}`,
         });
 
         setIsEditAdditionalBalanceDialogOpen(false);
@@ -427,9 +437,16 @@ export default function UserList() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-semibold text-green-600">
-                        ${((user.balance || 0) + (user.additionalBalance || 0)).toFixed(2)}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-green-600">
+                          ${((user.balance || 0) + (user.additionalBalance || 0)).toFixed(2)}
+                        </span>
+                        {user.additionalBalance && user.additionalBalance > 0 && (
+                          <span className="text-xs text-blue-600">
+                            (includes +${user.additionalBalance.toFixed(2)} additional)
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
