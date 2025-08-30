@@ -42,11 +42,8 @@ export default function UserList() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [newBalance, setNewBalance] = useState("")
   const [newAdditionalBalance, setNewAdditionalBalance] = useState("")
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isEditAdditionalBalanceDialogOpen, setIsEditAdditionalBalanceDialogOpen] = useState(false)
-  const [isUpdatingBalance, setIsUpdatingBalance] = useState(false)
   const [isUpdatingAdditionalBalance, setIsUpdatingAdditionalBalance] = useState(false)
   const { toast } = useToast()
 
@@ -94,66 +91,10 @@ export default function UserList() {
     }
   };
 
-  const handleEditBalance = (user: User) => {
-    setEditingUser(user);
-    setNewBalance(user.balance?.toString() || "0"); // Start with current balance for editing
-    setIsEditDialogOpen(true);
-  };
-
   const handleEditAdditionalBalance = (user: User) => {
     setEditingUser(user);
     setNewAdditionalBalance(user.additionalBalance?.toString() || "0");
     setIsEditAdditionalBalanceDialogOpen(true);
-  };
-
-  const handleUpdateBalance = async () => {
-    if (!editingUser) return;
-
-    const balanceValue = parseFloat(newBalance);
-    if (isNaN(balanceValue)) {
-      toast({
-        title: "Invalid Balance",
-        description: "Please enter a valid number for the balance.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsUpdatingBalance(true);
-      const response = await apiClient.put(`/api/admin/users/${editingUser._id}/balance`, {
-        balance: balanceValue,
-        operation: 'set' // Set the balance to the specified value
-      });
-
-      if (response.data.success) {
-        // Update the user in the local state with the new total balance
-        const newTotalBalance = response.data.user.balance;
-        setUsers(prevUsers =>
-          prevUsers.map(user =>
-            user._id === editingUser._id ? { ...user, balance: newTotalBalance } : user
-          )
-        );
-
-        toast({
-          title: "Balance Updated",
-          description: `Successfully updated ${editingUser.username}'s balance to $${newTotalBalance.toFixed(2)}`,
-        });
-
-        setIsEditDialogOpen(false);
-        setEditingUser(null);
-        setNewBalance("");
-      }
-    } catch (error: any) {
-      console.error('Failed to update balance:', error);
-      toast({
-        title: "Update Failed",
-        description: error.response?.data?.error || "Failed to update user balance",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdatingBalance(false);
-    }
   };
 
   const handleUpdateAdditionalBalance = async () => {
@@ -250,12 +191,6 @@ export default function UserList() {
       setIsUpdatingAdditionalBalance(false);
       console.log('🏁 Additional balance update process finished');
     }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditDialogOpen(false);
-    setEditingUser(null);
-    setNewBalance("");
   };
 
   const handleCancelAdditionalBalanceEdit = () => {
@@ -411,17 +346,7 @@ export default function UserList() {
                     <TableCell>{getActivationStatusBadge(user)}</TableCell>
                     <TableCell>{getAccountTypeBadge(user.balance, user.additionalBalance)}</TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <span>${user.balance?.toFixed(2) || '0.00'}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditBalance(user)}
-                          className="h-6 w-6 p-0 hover:bg-gray-100"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      <span>${user.balance?.toFixed(2) || '0.00'}</span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
@@ -499,42 +424,6 @@ export default function UserList() {
           )}
         </CardContent>
       </Card>
-
-      {/* Edit Balance Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit User Balance</DialogTitle>
-            <DialogDescription>
-              Set the balance for {editingUser?.username}. Current balance: ${editingUser?.balance?.toFixed(2) || '0.00'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="balance">New Balance ($)</Label>
-              <Input
-                id="balance"
-                type="number"
-                step="0.01"
-                min="0"
-                value={newBalance}
-                onChange={(e) => setNewBalance(e.target.value)}
-                                  placeholder="Enter new balance amount"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancelEdit} disabled={isUpdatingBalance}>
-              <X className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateBalance} disabled={isUpdatingBalance}>
-              <Save className="h-4 w-4 mr-2" />
-              {isUpdatingBalance ? "Updating..." : "Update Balance"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Edit Additional Balance Dialog */}
       <Dialog open={isEditAdditionalBalanceDialogOpen} onOpenChange={setIsEditAdditionalBalanceDialogOpen}>
