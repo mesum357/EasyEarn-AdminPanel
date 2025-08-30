@@ -157,10 +157,18 @@ export default function UserList() {
   };
 
   const handleUpdateAdditionalBalance = async () => {
-    if (!editingUser) return;
+    console.log('🔄 Additional balance update started', { editingUser, newAdditionalBalance });
+    
+    if (!editingUser) {
+      console.error('❌ No editing user found');
+      return;
+    }
 
     const additionalBalanceValue = parseFloat(newAdditionalBalance);
+    console.log('💰 Parsed additional balance value:', additionalBalanceValue);
+    
     if (isNaN(additionalBalanceValue) || additionalBalanceValue < 0) {
+      console.error('❌ Invalid additional balance value:', additionalBalanceValue);
       toast({
         title: "Invalid Additional Balance",
         description: "Please enter a valid non-negative number for the additional balance.",
@@ -171,38 +179,66 @@ export default function UserList() {
 
     try {
       setIsUpdatingAdditionalBalance(true);
+      console.log('🚀 Sending API request to update additional balance...');
+      
       const response = await apiClient.put(`/api/admin/users/${editingUser._id}/additional-balance`, {
         additionalBalance: additionalBalanceValue,
         reason: 'Admin adjustment'
       });
 
+      console.log('✅ API response received:', response.data);
+
       if (response.data.success) {
         // Update the user in the local state with the new additional balance
-        const newAdditionalBalance = response.data.user.additionalBalance;
+        const updatedAdditionalBalance = response.data.user.additionalBalance;
+        const totalBalance = response.data.user.totalBalance;
+        
+        console.log('🔄 Updating local state with new balance:', {
+          userId: editingUser._id,
+          additionalBalance: updatedAdditionalBalance,
+          totalBalance
+        });
+        
         setUsers(prevUsers =>
           prevUsers.map(user =>
-            user._id === editingUser._id ? { ...user, additionalBalance: newAdditionalBalance } : user
+            user._id === editingUser._id ? { ...user, additionalBalance: updatedAdditionalBalance } : user
           )
         );
 
         toast({
           title: "Additional Balance Updated",
-          description: `Successfully updated ${editingUser.username}'s additional balance to $${newAdditionalBalance.toFixed(2)}`,
+          description: `Successfully updated ${editingUser.username}'s additional balance to $${updatedAdditionalBalance.toFixed(2)}. Total balance: $${totalBalance.toFixed(2)}`,
         });
 
         setIsEditAdditionalBalanceDialogOpen(false);
         setEditingUser(null);
         setNewAdditionalBalance("");
+        
+        console.log('✅ Additional balance update completed successfully');
+      } else {
+        console.error('❌ API response indicates failure:', response.data);
+        toast({
+          title: "Update Failed",
+          description: "Server responded with failure status",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
-      console.error('Failed to update additional balance:', error);
+      console.error('❌ Failed to update additional balance:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
       toast({
         title: "Update Failed",
-        description: error.response?.data?.error || "Failed to update user additional balance",
+        description: error.response?.data?.error || "Failed to update user additional balance. Check console for details.",
         variant: "destructive",
       });
     } finally {
       setIsUpdatingAdditionalBalance(false);
+      console.log('🏁 Additional balance update process finished');
     }
   };
 
@@ -492,33 +528,53 @@ export default function UserList() {
               Set the additional balance for {editingUser?.username}. Current additional balance: ${editingUser?.additionalBalance?.toFixed(2) || '0.00'}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="additionalBalance">Additional Balance ($)</Label>
-              <Input
-                id="additionalBalance"
-                type="number"
-                step="0.01"
-                min="0"
-                value={newAdditionalBalance}
-                onChange={(e) => setNewAdditionalBalance(e.target.value)}
-                placeholder="Enter additional balance amount"
-              />
-              <p className="text-sm text-gray-500">
-                This will be added to the user's current balance from deposits and tasks.
-              </p>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleUpdateAdditionalBalance();
+          }}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="additionalBalance">Additional Balance ($)</Label>
+                <Input
+                  id="additionalBalance"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newAdditionalBalance}
+                  onChange={(e) => setNewAdditionalBalance(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleUpdateAdditionalBalance();
+                    }
+                  }}
+                  placeholder="Enter additional balance amount"
+                  autoFocus
+                />
+                <p className="text-sm text-gray-500">
+                  This will be added to the user's current balance from deposits and tasks.
+                </p>
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancelAdditionalBalanceEdit} disabled={isUpdatingAdditionalBalance}>
-              <X className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateAdditionalBalance} disabled={isUpdatingAdditionalBalance}>
-              <Save className="h-4 w-4 mr-2" />
-              {isUpdatingAdditionalBalance ? "Updating..." : "Update Additional Balance"}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="mt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleCancelAdditionalBalanceEdit} 
+                disabled={isUpdatingAdditionalBalance}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isUpdatingAdditionalBalance}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {isUpdatingAdditionalBalance ? "Updating..." : "Update Additional Balance"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
