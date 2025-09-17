@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Eye, Ban, CheckCircle, UserCheck, Gift } from "lucide-react"
+import { Search, Eye, Ban, CheckCircle, UserCheck, Gift, Plus, Minus } from "lucide-react"
 import apiClient from "@/lib/axios"
 
 interface User {
@@ -30,6 +30,8 @@ export default function UserList() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [adjustingBalance, setAdjustingBalance] = useState<string | null>(null)
+  const [balanceAmount, setBalanceAmount] = useState<number>(10)
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -72,6 +74,32 @@ export default function UserList() {
       }
     } catch (error) {
       console.error(`Failed to change status for user ${userId}:`, error);
+    }
+  };
+
+  const handleBalanceAdjustment = async (userId: string, operation: 'add' | 'subtract') => {
+    try {
+      setAdjustingBalance(userId);
+      
+      const response = await apiClient.put(`/api/admin/users/${userId}/balance`, {
+        amount: balanceAmount,
+        operation: operation
+      });
+
+      if (response.data.success) {
+        // Update the user in the local state
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            user._id === userId ? { ...user, balance: response.data.user.balance } : user
+          )
+        );
+        
+        console.log(`Balance ${operation} successful for user ${userId}:`, response.data.message);
+      }
+    } catch (error) {
+      console.error(`Failed to ${operation} balance for user ${userId}:`, error);
+    } finally {
+      setAdjustingBalance(null);
     }
   };
 
@@ -197,6 +225,7 @@ export default function UserList() {
                   <TableHead>Status</TableHead>
                   <TableHead>Account Type</TableHead>
                   <TableHead>Balance</TableHead>
+                  <TableHead>Balance Controls</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -218,7 +247,44 @@ export default function UserList() {
                     </TableCell>
                     <TableCell>{getActivationStatusBadge(user)}</TableCell>
                     <TableCell>{getAccountTypeBadge(user.balance)}</TableCell>
-                    <TableCell>${user.balance?.toFixed(2) || '0.00'}</TableCell>
+                    <TableCell>
+                      <div className="font-medium">
+                        ${user.balance?.toFixed(2) || '0.00'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
+                          <Input
+                            type="number"
+                            value={balanceAmount}
+                            onChange={(e) => setBalanceAmount(Number(e.target.value))}
+                            className="w-16 h-8 text-xs"
+                            min="0.01"
+                            step="0.01"
+                            placeholder="10"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleBalanceAdjustment(user._id, 'add')}
+                            disabled={adjustingBalance === user._id}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleBalanceAdjustment(user._id, 'subtract')}
+                            disabled={adjustingBalance === user._id}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
