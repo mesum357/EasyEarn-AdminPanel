@@ -74,6 +74,10 @@ export default function TaskManagement() {
   const [submissions, setSubmissions] = useState<TaskSubmission[]>([])
   const [loading, setLoading] = useState(true)
   const [submissionsLoading, setSubmissionsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalSubmissions, setTotalSubmissions] = useState(0)
+  const [submissionsPerPage] = useState(50)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [processingTask, setProcessingTask] = useState<string | null>(null)
@@ -105,17 +109,20 @@ export default function TaskManagement() {
     }
   }
 
-  // Fetch task submissions from backend
-  const fetchSubmissions = async () => {
+  // Fetch task submissions from backend with pagination
+  const fetchSubmissions = async (page: number = currentPage) => {
     try {
       setSubmissionsLoading(true)
-      const response = await apiClient.get('/api/admin/task-submissions')
+      const response = await apiClient.get(`/api/admin/task-submissions?page=${page}&limit=${submissionsPerPage}`)
       
       console.log('Submissions response:', response.data)
       
       if (response.data.success) {
         setSubmissions(response.data.submissions)
-        console.log('Submissions loaded:', response.data.submissions.length)
+        setCurrentPage(response.data.currentPage || page)
+        setTotalPages(response.data.totalPages || 1)
+        setTotalSubmissions(response.data.total || response.data.submissions.length)
+        console.log(`Submissions loaded: ${response.data.submissions.length} of ${response.data.total || 'unknown'} total`)
       } else {
         console.error('Failed to fetch submissions:', response.data.error)
         setSubmissions([])
@@ -725,6 +732,77 @@ export default function TaskManagement() {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+              
+              {/* Pagination Controls */}
+              {!submissionsLoading && totalPages > 1 && (
+                <div className="flex items-center justify-between px-2 py-4">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-gray-700">
+                      Showing <span className="font-medium">{((currentPage - 1) * submissionsPerPage) + 1}</span> to{' '}
+                      <span className="font-medium">
+                        {Math.min(currentPage * submissionsPerPage, totalSubmissions)}
+                      </span>{' '}
+                      of <span className="font-medium">{totalSubmissions}</span> submissions
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newPage = currentPage - 1;
+                        setCurrentPage(newPage);
+                        fetchSubmissions(newPage);
+                      }}
+                      disabled={currentPage <= 1 || submissionsLoading}
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              setCurrentPage(pageNum);
+                              fetchSubmissions(pageNum);
+                            }}
+                            disabled={submissionsLoading}
+                            className="w-8"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newPage = currentPage + 1;
+                        setCurrentPage(newPage);
+                        fetchSubmissions(newPage);
+                      }}
+                      disabled={currentPage >= totalPages || submissionsLoading}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
               )}
         </CardContent>
       </Card>

@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic"
 import AdminLayout from "@/components/admin-layout"
 
+
 const Dashboard = dynamic(() => import("@/components/pages/dashboard"), {
   ssr: false,
   loading: () => (
