@@ -136,28 +136,25 @@ export default function UserList() {
         // Update the user in the local state with the new additional balance
         const updatedAdditionalBalance = response.data.user.additionalBalance;
         const totalBalance = response.data.user.totalBalance;
+        const baseBalance = response.data.user.balance;
         
         console.log('🔄 Updating local state with new balance:', {
           userId: editingUser._id,
           additionalBalance: updatedAdditionalBalance,
-          totalBalance
+          totalBalance,
+          baseBalance
         });
         
         setUsers(prevUsers =>
           prevUsers.map(user =>
             user._id === editingUser._id ? { 
               ...user, 
-              additionalBalance: updatedAdditionalBalance
+              additionalBalance: updatedAdditionalBalance,
+              totalBalance: totalBalance,
+              baseBalance: baseBalance
             } : user
           )
         );
-
-        // Refresh the users list to ensure we have the latest data
-        const refreshResponse = await apiClient.get(`/api/admin/users?page=${currentPage}&limit=50`);
-        if (refreshResponse.data && refreshResponse.data.users) {
-          setUsers(refreshResponse.data.users);
-          console.log('🔄 Refreshed users list after additional balance update');
-        }
 
         // Show success message with detailed information
         const balanceChange = updatedAdditionalBalance - (editingUser.additionalBalance || 0);
