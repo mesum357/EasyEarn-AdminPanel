@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Eye, Ban, CheckCircle, UserCheck, Gift, Plus, Minus, Edit, Save, X } from "lucide-react"
+import { Search, Eye, Ban, CheckCircle, UserCheck, Gift, Edit, Save, X } from "lucide-react"
 import apiClient from "@/lib/axios"
 import {
   Dialog,
@@ -41,8 +41,6 @@ export default function UserList() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [adjustingBalance, setAdjustingBalance] = useState<string | null>(null)
-  const [balanceAmount, setBalanceAmount] = useState<number>(10)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [newAdditionalBalance, setNewAdditionalBalance] = useState("")
   const [isEditAdditionalBalanceDialogOpen, setIsEditAdditionalBalanceDialogOpen] = useState(false)
@@ -93,31 +91,6 @@ export default function UserList() {
     }
   };
 
-  const handleBalanceAdjustment = async (userId: string, operation: 'add' | 'subtract') => {
-    try {
-      setAdjustingBalance(userId);
-      
-      const response = await apiClient.put(`/api/admin/users/${userId}/balance`, {
-        amount: balanceAmount,
-        operation: operation
-      });
-
-      if (response.data.success) {
-        // Update the user in the local state
-        setUsers(prevUsers =>
-          prevUsers.map(user =>
-            user._id === userId ? { ...user, balance: response.data.user.balance } : user
-          )
-        );
-        
-        console.log(`Balance ${operation} successful for user ${userId}:`, response.data.message);
-      }
-    } catch (error) {
-      console.error(`Failed to ${operation} balance for user ${userId}:`, error);
-    } finally {
-      setAdjustingBalance(null);
-    }
-  };
 
   const handleEditAdditionalBalance = (user: User) => {
     setEditingUser(user);
@@ -136,11 +109,11 @@ export default function UserList() {
     const additionalBalanceValue = parseFloat(newAdditionalBalance);
     console.log('💰 Parsed additional balance value:', additionalBalanceValue);
     
-    if (isNaN(additionalBalanceValue) || additionalBalanceValue < 0) {
+    if (isNaN(additionalBalanceValue)) {
       console.error('❌ Invalid additional balance value:', additionalBalanceValue);
       toast({
         title: "Invalid Additional Balance",
-        description: "Please enter a valid non-negative number for the additional balance.",
+        description: "Please enter a valid number for the additional balance.",
         variant: "destructive",
       });
       return;
@@ -352,7 +325,6 @@ export default function UserList() {
                   <TableHead>Current Balance</TableHead>
                   <TableHead>Additional Balance</TableHead>
                   <TableHead>Total Balance</TableHead>
-                  <TableHead>Balance Controls</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -379,7 +351,9 @@ export default function UserList() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <span>${user.additionalBalance?.toFixed(2) || '0.00'}</span>
+                        <span className={user.additionalBalance && user.additionalBalance < 0 ? "text-red-600" : ""}>
+                          ${user.additionalBalance?.toFixed(2) || '0.00'}
+                        </span>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -392,47 +366,14 @@ export default function UserList() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-green-600">
+                        <span className={`font-semibold ${((user.balance || 0) + (user.additionalBalance || 0)) < 0 ? "text-red-600" : "text-green-600"}`}>
                           ${((user.balance || 0) + (user.additionalBalance || 0)).toFixed(2)}
                         </span>
-                        {user.additionalBalance && user.additionalBalance > 0 && (
-                          <span className="text-xs text-blue-600">
-                            (includes +${user.additionalBalance.toFixed(2)} additional)
+                        {user.additionalBalance && user.additionalBalance !== 0 && (
+                          <span className={`text-xs ${user.additionalBalance > 0 ? "text-blue-600" : "text-red-600"}`}>
+                            {user.additionalBalance > 0 ? `(+$${user.additionalBalance.toFixed(2)} additional)` : `($${user.additionalBalance.toFixed(2)} deduction)`}
                           </span>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <div className="flex items-center space-x-1">
-                          <Input
-                            type="number"
-                            value={balanceAmount}
-                            onChange={(e) => setBalanceAmount(Number(e.target.value))}
-                            className="w-16 h-8 text-xs"
-                            min="0.01"
-                            step="0.01"
-                            placeholder="10"
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleBalanceAdjustment(user._id, 'add')}
-                            disabled={adjustingBalance === user._id}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleBalanceAdjustment(user._id, 'subtract')}
-                            disabled={adjustingBalance === user._id}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                        </div>
                       </div>
                     </TableCell>
                     <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
@@ -507,7 +448,6 @@ export default function UserList() {
                   id="additionalBalance"
                   type="number"
                   step="0.01"
-                  min="0"
                   value={newAdditionalBalance}
                   onChange={(e) => setNewAdditionalBalance(e.target.value)}
                   onKeyPress={(e) => {
@@ -516,11 +456,11 @@ export default function UserList() {
                       handleUpdateAdditionalBalance();
                     }
                   }}
-                  placeholder="Enter additional balance amount"
+                  placeholder="Enter additional balance amount (can be negative)"
                   autoFocus
                 />
                 <p className="text-sm text-gray-500">
-                  This will be added to the user's current balance from deposits and tasks.
+                  This will be added to the user's current balance from deposits and tasks. You can enter negative values to deduct from their balance.
                 </p>
               </div>
             </div>
