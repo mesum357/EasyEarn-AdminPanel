@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Eye, Ban, CheckCircle, UserCheck, Gift, Edit, Save, X } from "lucide-react"
+import { Search, Eye, Ban, CheckCircle, UserCheck, Gift, Edit, Save, X, Loader2 } from "lucide-react"
 import apiClient from "@/lib/axios"
 import {
   Dialog,
@@ -157,9 +157,14 @@ export default function UserList() {
           console.log('🔄 Refreshed users list after additional balance update');
         }
 
+        // Show success message with detailed information
+        const balanceChange = updatedAdditionalBalance - (editingUser.additionalBalance || 0);
+        const changeText = balanceChange > 0 ? `+$${balanceChange.toFixed(2)}` : `$${balanceChange.toFixed(2)}`;
+        
         toast({
           title: "✅ Additional Balance Updated Successfully",
-          description: `${editingUser.username}'s additional balance: $${updatedAdditionalBalance.toFixed(2)} | New total balance: $${totalBalance.toFixed(2)}`,
+          description: `User: ${editingUser.username} | Change: ${changeText} | New Additional: $${updatedAdditionalBalance.toFixed(2)} | Total Balance: $${totalBalance.toFixed(2)}`,
+          duration: 6000,
         });
 
         setIsEditAdditionalBalanceDialogOpen(false);
@@ -434,7 +439,12 @@ export default function UserList() {
           <DialogHeader>
             <DialogTitle>Edit Additional Balance</DialogTitle>
             <DialogDescription>
-              Set the additional balance for {editingUser?.username}. Current additional balance: ${editingUser?.additionalBalance?.toFixed(2) || '0.00'}
+              Set the additional balance for <strong>{editingUser?.username}</strong>. 
+              <br />
+              <span className="text-sm text-gray-600">
+                Current additional balance: <span className="font-mono">${editingUser?.additionalBalance?.toFixed(2) || '0.00'}</span> | 
+                Current total balance: <span className="font-mono">${((editingUser?.balance || 0) + (editingUser?.additionalBalance || 0)).toFixed(2)}</span>
+              </span>
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={(e) => {
@@ -457,6 +467,7 @@ export default function UserList() {
                     }
                   }}
                   placeholder="Enter additional balance amount (can be negative)"
+                  disabled={isUpdatingAdditionalBalance}
                   autoFocus
                 />
                 <p className="text-sm text-gray-500">
@@ -477,9 +488,19 @@ export default function UserList() {
               <Button 
                 type="submit" 
                 disabled={isUpdatingAdditionalBalance}
+                className="min-w-[180px]"
               >
-                <Save className="h-4 w-4 mr-2" />
-                {isUpdatingAdditionalBalance ? "Updating..." : "Update Additional Balance"}
+                {isUpdatingAdditionalBalance ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Updating Balance...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Additional Balance
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </form>
