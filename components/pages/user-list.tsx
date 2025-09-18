@@ -28,6 +28,8 @@ interface User {
   verified: boolean
   balance?: number
   additionalBalance?: number
+  totalBalance?: number
+  baseBalance?: number
   createdAt: string
   referralCode?: string
   hasDeposited?: boolean
@@ -224,8 +226,7 @@ export default function UserList() {
     }
   };
 
-  const getAccountTypeBadge = (balance: number = 0, additionalBalance: number = 0) => {
-    const totalBalance = balance + additionalBalance;
+  const getAccountTypeBadge = (totalBalance: number = 0) => {
     if (totalBalance > 100) {
       return (
         <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
@@ -350,9 +351,9 @@ export default function UserList() {
                       </div>
                     </TableCell>
                     <TableCell>{getActivationStatusBadge(user)}</TableCell>
-                    <TableCell>{getAccountTypeBadge(user.balance, user.additionalBalance)}</TableCell>
+                    <TableCell>{getAccountTypeBadge(user.totalBalance)}</TableCell>
                     <TableCell>
-                      <span>${user.balance?.toFixed(2) || '0.00'}</span>
+                      <span>${user.baseBalance?.toFixed(2) || '0.00'}</span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
@@ -371,8 +372,8 @@ export default function UserList() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className={`font-semibold ${((user.balance || 0) + (user.additionalBalance || 0)) < 0 ? "text-red-600" : "text-green-600"}`}>
-                          ${((user.balance || 0) + (user.additionalBalance || 0)).toFixed(2)}
+                        <span className={`font-semibold ${(user.totalBalance || 0) < 0 ? "text-red-600" : "text-green-600"}`}>
+                          ${(user.totalBalance || 0).toFixed(2)}
                         </span>
                         {user.additionalBalance && user.additionalBalance !== 0 && (
                           <span className={`text-xs ${user.additionalBalance > 0 ? "text-blue-600" : "text-red-600"}`}>
@@ -443,7 +444,7 @@ export default function UserList() {
               <br />
               <span className="text-sm text-gray-600">
                 Current additional balance: <span className="font-mono">${editingUser?.additionalBalance?.toFixed(2) || '0.00'}</span> | 
-                Current total balance: <span className="font-mono">${((editingUser?.balance || 0) + (editingUser?.additionalBalance || 0)).toFixed(2)}</span>
+                Current total balance: <span className="font-mono">${editingUser?.totalBalance?.toFixed(2) || '0.00'}</span>
               </span>
             </DialogDescription>
           </DialogHeader>
